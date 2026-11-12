@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>쉬몰케 카본 | 루비워크샵</title>
+<meta name="robots" content="noindex">
+<script>
+  // 하위 주소(/cockpit, /en/wheels ...)를 원페이지 섹션으로 연결
+  // github.io 미리보기(/schmolke/)와 자체 도메인(/) 모두 동작
+  var base = location.hostname.slice(-10) === 'github.io' ? '/schmolke/' : '/';
+  var parts = location.pathname.slice(base.length).replace(/\/$/, '').toLowerCase().split('/');
+  var lang = (parts[0] === 'en' || parts[0] === 'ja') ? parts.shift() + '/' : '';
+  var key = parts.join('/');
+  var alias = { 'handlebar':'cockpit', 'handlebars':'cockpit', 'roadbar':'cockpit', 'evo':'cockpit', 'roadbar-evo':'cockpit', 'cockpit-tlo':'cockpit', 'aero':'cockpit', 'cockpit-aero':'cockpit',
+                'stem':'cockpit', 'tlo-stem':'cockpit', 'post':'seatpost', 'seatposts':'seatpost', 'setback':'seatpost', 'saddles':'saddle', 'tlo55':'saddle', 'tlo-55':'saddle', 'sl79':'saddle', 'sl-79':'saddle',
+                'wheel':'wheels', 'wheelset':'wheels', 'wheelsets':'wheels', 'tlo37':'wheels', 'tlo-37':'wheels', 'tlo50':'wheels', 'tlo-50':'wheels', 'gravel':'wheels',
+                'brompton':'folding', 'folding-bike':'folding', 'lowriser':'folding', 'minivelo':'folding', 'parts':'folding', 'bottle-cage':'folding', 'cage':'folding',
+                'size':'fit', 'size-guide':'fit', 'fit-guide':'fit', 'about':'brand', 'tlo':'brand', 'history':'story', 'contact':'showroom', 'dealer':'dealers', 'lineup':'range' };
+  var map = { brand:1, range:1, cockpit:1, seatpost:1, saddle:1, wheels:1, folding:1, fit:1, story:1, showroom:1, dealers:1 };
+  key = alias[key] || key;
+  location.replace(base + lang + (map[key] ? '#' + key : ''));
+</script>
+<style>body{background:#fff}@media (prefers-color-scheme:dark){body{background:#101114}}</style>
+</head>
+<body></body>
+</html>

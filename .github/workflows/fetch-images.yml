@@ -1,0 +1,51 @@
+name: Fetch images from Schmolke (schmolke-carbon.com)
+
+# .github/image-manifest.txt 에 적힌 이미지를 받아 images/ 폴더에 커밋합니다.
+# 형식: <원본 URL> <저장 경로>  (한 줄에 하나)
+# 원본이 2560~5500px로 커서, 받은 뒤 히어로는 가로 2400px, 나머지는 긴 변 1600px로 줄입니다.
+on:
+  push:
+    branches: [main]
+    paths: [.github/image-manifest.txt]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download
+        run: |
+          set -e
+          UA="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36"
+          fail=0
+          : > /tmp/new.txt
+          while read -r url dest; do
+            [ -z "$url" ] && continue
+            if [ -s "$dest" ]; then echo "skip  $dest"; continue; fi
+            mkdir -p "$(dirname "$dest")"
+            if curl -fsSL --retry 3 -A "$UA" -e "https://www.schmolke-carbon.com/" -H "Accept: image/jpeg,image/png,image/svg+xml;q=0.9,*/*;q=0.5" -o "$dest" "$url"; then echo "ok    $dest $(stat -c%s "$dest") bytes"; echo "$dest" >> /tmp/new.txt; else echo "FAIL  $url"; fail=1; fi
+          done < .github/image-manifest.txt
+          exit $fail
+      - name: Resize
+        run: |
+          command -v mogrify >/dev/null || (sudo apt-get update -qq && sudo apt-get install -y -qq imagemagick)
+          while read -r f; do
+            case "$f" in
+              *.svg) continue ;;
+              images/hero/*|images/og.jpg) mogrify -resize '2400x2400>' -strip -quality 82 "$f" ;;
+              *.png) mogrify -resize '1600x1600>' -strip "$f" ;;
+              *) mogrify -resize '1600x1600>' -strip -quality 82 "$f" ;;
+            esac
+            echo "resized $f $(stat -c%s "$f") bytes"
+          done < /tmp/new.txt
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898299+github-actions[bot]@users.noreply.github.com"
+          git add images
+          git diff --cached --quiet && echo "no changes" || git commit -m "Add images from schmolke-carbon.com"
+          git push
